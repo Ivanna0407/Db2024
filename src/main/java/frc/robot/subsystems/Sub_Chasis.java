@@ -13,6 +13,8 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
+
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -30,22 +32,27 @@ public class Sub_Chasis extends SubsystemBase {
     Left_Motor_M.setNeutralMode(NeutralModeValue.Brake);
     Left_Motor_S.setNeutralMode(NeutralModeValue.Brake);
 
-    var Factorydefaults= new MotorOutputConfigs();
-    final PositionVoltage m_recuest = new PositionVoltage(50).withSlot(0);
-    Factorydefaults.Inverted=InvertedValue.Clockwise_Positive;
+    //var Factorydefaults= new MotorOutputConfigs();
+    final PositionVoltage m_recuest = new PositionVoltage(0).withSlot(0);
+    var td =new OpenLoopRampsConfigs();
 
-    Left_Motor_M.getConfigurator().apply(Factorydefaults);
-    Left_Motor_S.getConfigurator().apply(Factorydefaults);
+    td.DutyCycleOpenLoopRampPeriod=0;
+    
 
-    Factorydefaults.Inverted=InvertedValue.CounterClockwise_Positive;
+    Left_Motor_S.getConfigurator().apply(td);
+    Right_Motor_S.getConfigurator().apply(td);
+    Left_Motor_M.getConfigurator().apply(td);
+    Right_Motor_M.getConfigurator().apply(td);
 
-    Right_Motor_M.getConfigurator().apply(Factorydefaults);
-    Right_Motor_S.getConfigurator().apply(Factorydefaults);
+
+
+    //Right_Motor_M.setInverted(true);
+    //Right_Motor_S.setInverted(true);
+
 
     Right_Motor_S.setControl(new Follower(Right_Motor_M.getDeviceID(), false));
     Left_Motor_S.setControl(new Follower(Left_Motor_M.getDeviceID(), false));
 
-    
 
     Left_Motor_M.set(0);
     Left_Motor_S.set(0);

@@ -32,12 +32,12 @@ public class Cmd_Move extends Command {
   @Override
   public void execute() {
     double speed_R,speed_L,Trigger,Turn,Boost;
-    Trigger=RT.get()-LT.get(); if (Math.abs(Trigger)<.15){Trigger=0;}
+    Trigger=LT.get()-RT.get(); if (Math.abs(Trigger)<.15){Trigger=0;}
     Turn=XAxis.get();if(Math.abs(Turn)<0.25){Turn = 0;}
     if (Bbutton.get()){Boost=0.5;}else{Boost=1;}
-    speed_L= (Trigger-Turn)*Boost;
-    speed_R=(Trigger+Turn)*Boost;
-    chasis.setspeed(speed_L, speed_R);
+    speed_L= (Trigger+Turn)*Boost;
+    speed_R=(Trigger-Turn)*Boost;
+    chasis.setspeed(speed_L*.60, -speed_R*.60);
   }
 
   // Called once the command ends or is interrupted.

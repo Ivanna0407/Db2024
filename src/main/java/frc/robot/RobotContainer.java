@@ -5,54 +5,44 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.Cmd_Climb;
 import frc.robot.commands.Cmd_Move;
+import frc.robot.commands.Cmd_Shoot_Amp;
+import frc.robot.commands.Cmd_Shoot_Shooter;
+import frc.robot.commands.Cmd_Shoot_Speaker;
 import frc.robot.subsystems.Sub_Chasis;
+import frc.robot.subsystems.Sub_Climber;
+import frc.robot.subsystems.Sub_Intake_Shooter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
- */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   //private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
-  private final Sub_Chasis Chasis=new Sub_Chasis();
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+   Sub_Chasis Chasis=new Sub_Chasis();
+   Sub_Climber Climber=new Sub_Climber();
+   Sub_Intake_Shooter Intake_Shooter = new Sub_Intake_Shooter();
+    // Replace with CommandPS4Controller or CommandJoystick if needed
       CommandXboxController Joy_drive= new CommandXboxController(0);
+      CommandXboxController Sub_drive=new CommandXboxController(1);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     Chasis.setDefaultCommand(new Cmd_Move(Chasis, () -> Joy_drive.getRightTriggerAxis(),() -> Joy_drive.getLeftTriggerAxis(), () -> Joy_drive.getLeftX(), () -> Joy_drive.b().getAsBoolean()));
     configureBindings();
+    Intake_Shooter.setDefaultCommand(new Cmd_Shoot_Shooter(Intake_Shooter, () -> Sub_drive.a().getAsBoolean(), () -> Sub_drive.b().getAsBoolean(), () -> Sub_drive.x().getAsBoolean(),() -> Sub_drive.leftBumper().getAsBoolean(), ()-> Sub_drive.rightBumper().getAsBoolean()));
+    Climber.setDefaultCommand(new Cmd_Climb(Climber,() -> Sub_drive.getRightY()));
   }
 
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
-   */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
+     // Sub_drive.b().whileTrue(new Cmd_Shoot_Speaker(Intake_Shooter, 0));
+      //Sub_drive.x().whileTrue(new Cmd_Shoot_Speaker(Intake_Shooter, 1));
+      Sub_drive.y().whileTrue(new Cmd_Shoot_Amp(Intake_Shooter));
+      
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
+  
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     return null;
