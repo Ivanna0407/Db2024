@@ -4,18 +4,19 @@
 
 package frc.robot.commands;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Sub_Intake_Shooter;
 
-public class Cmd_Shoot_Speaker extends Command {
-  /** Creates a new Cmd_Shoot. */
-    private final Sub_Intake_Shooter Shooter;
-    private final int mode ;
-  public Cmd_Shoot_Speaker(Sub_Intake_Shooter Shooter,int mode) {
+public class Cmd_reset extends Command {
+  /** Creates a new Cmd_reset. */
+  private final Sub_Intake_Shooter Intake;
+private final double setpoint;
+  public Cmd_reset(Sub_Intake_Shooter intake,double setpoint) {
+    this.Intake=intake;
+    this.setpoint=setpoint;
     // Use addRequirements() here to declare subsystem dependencies.
-    this.Shooter=Shooter;
-    this.mode=mode;
-    addRequirements(Shooter);
   }
 
   // Called when the command is initially scheduled.
@@ -25,19 +26,13 @@ public class Cmd_Shoot_Speaker extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (mode ==0){
-      Shooter.IntakeSet(.5);
-      }
-      else {if(mode==1){
-        Shooter.IntakeSet(-.5);
-      }}
+    Intake.SetEncoderArmIntake(setpoint);
+    
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {
-    Shooter.IntakeSet(0);
-  }
+  public void end(boolean interrupted) {}
 
   // Returns true when the command should end.
   @Override

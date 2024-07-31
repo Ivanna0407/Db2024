@@ -1,85 +1,150 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.NavX.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.SPI.Port;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
+//import com.ctre.phoenix;
+//Librerias de Phoenix para el movimiento de los motores TALON
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 public class Sub_Chasis extends SubsystemBase {
-  /** Creates a new Chasis_Sub. */
-  private final TalonFX Right_Motor_M = new TalonFX(11);
-  private final TalonFX Right_Motor_S = new TalonFX(12);
-  private final TalonFX Left_Motor_M = new TalonFX(9);
-  private final TalonFX Left_Motor_S = new TalonFX(10);
+  private final double Kfactor = (6*Math.PI/(9.52));
+
+  private final TalonFX m_leftLeader = new TalonFX(9);
+  private final TalonFX m_leftFollower = new TalonFX(10);
+  private final TalonFX m_rightLeader = new TalonFX(11);
+  private final TalonFX m_rightFollower = new TalonFX(12);
+
+
+
+  // GYRO
+  AHRS ahrs = new AHRS(SPI.Port.kMXP, (byte) 66);
+
+  public double DifYaw,PartialYaw;
+
+
+  // VISION
+  public double Tx, Ty, Ta;
+
 
   public Sub_Chasis() {
-    Right_Motor_M.setNeutralMode(NeutralModeValue.Brake);
-    Right_Motor_S.setNeutralMode(NeutralModeValue.Brake);
-    Left_Motor_M.setNeutralMode(NeutralModeValue.Brake);
-    Left_Motor_S.setNeutralMode(NeutralModeValue.Brake);
+    // Aplicamos Factory defaults 
+    var factorydefaults = new MotorOutputConfigs();
 
-    //var Factorydefaults= new MotorOutputConfigs();
-    final PositionVoltage m_recuest = new PositionVoltage(0).withSlot(0);
-    var td =new OpenLoopRampsConfigs();
+    m_leftLeader.getConfigurator().apply(factorydefaults);
+    m_leftFollower.getConfigurator().apply(factorydefaults);
+    m_rightLeader.getConfigurator().apply(factorydefaults);
+    m_rightFollower.getConfigurator().apply(factorydefaults);
 
-    td.DutyCycleOpenLoopRampPeriod=0;
-    
+    //Aplicar el modo IDLE en este caso brake
+    m_leftLeader.setNeutralMode(NeutralModeValue.Brake);
+    m_rightLeader.setNeutralMode(NeutralModeValue.Brake);
 
-    Left_Motor_S.getConfigurator().apply(td);
-    Right_Motor_S.getConfigurator().apply(td);
-    Left_Motor_M.getConfigurator().apply(td);
-    Right_Motor_M.getConfigurator().apply(td);
-
-
-
-    //Right_Motor_M.setInverted(true);
-    //Right_Motor_S.setInverted(true);
-
-
-    Right_Motor_S.setControl(new Follower(Right_Motor_M.getDeviceID(), false));
-    Left_Motor_S.setControl(new Follower(Left_Motor_M.getDeviceID(), false));
-
-
-    Left_Motor_M.set(0);
-    Left_Motor_S.set(0);
-    Right_Motor_M.set(0);
-    Right_Motor_S.set(0);
-    
-    Right_Motor_M.setControl(m_recuest.withPosition(10));
-    Right_Motor_S.setControl(m_recuest.withPosition(10));
-    Left_Motor_M.setControl(m_recuest.withPosition(10));
-    Left_Motor_S.setControl(m_recuest.withPosition(10));
-    
+    m_rightLeader.setPosition(0);
+    m_leftLeader.setPosition(0);
+    PartialYaw=0;
+  
 
 
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Encoder", Right_Motor_M.getPosition().getValueAsDouble());
+   
+  }
+
+  public void OpenLoopS(double S) {
+    var td = new OpenLoopRampsConfigs();
+    td.DutyCycleOpenLoopRampPeriod = S;
+    m_leftLeader.getConfigurator().apply(td);
+    m_leftFollower.getConfigurator().apply(td);
+    m_rightLeader.getConfigurator().apply(td);
+    m_rightFollower.getConfigurator().apply(td);
+  }
+
+  ////////////////////////ENCODERS////////////////////////
+
+  public void resetPosition() {
+    m_leftLeader.setPosition(0);
+    m_rightLeader.setPosition(0);
+  }
+
+  public double getRightVelocity(){
+    return m_rightLeader.getVelocity().getValueAsDouble()  * Kfactor;
+  }
+
+   public double getLeftVelocity(){
+    return m_leftLeader.getVelocity().getValueAsDouble()  * Kfactor;
+  }
+
+  public double getLeftPosition() {
+    return (-m_leftLeader.getPosition().getValueAsDouble()) * Kfactor;
+  }
+
+  public double getRightPosition() {
+    return (m_rightLeader.getPosition().getValueAsDouble())  * Kfactor;
+  }
+
+  public double getpromencoders() {
+    return ((getRightPosition() + getLeftPosition()) / 2);
+  }
+
+  public void setSpeed(double RightSpeed, double LeftSpeed) {
+    if (Math.abs(LeftSpeed) >= 0.8) {
+      LeftSpeed = (LeftSpeed / Math.abs(LeftSpeed)) * 0.8;
+    }
+    if (Math.abs(RightSpeed) >= 0.8) {
+      RightSpeed = (RightSpeed / Math.abs(RightSpeed)) * 0.8;
+    }
+    m_leftFollower.set(LeftSpeed);
+    m_leftLeader.set(LeftSpeed);
+    m_rightFollower.set(-RightSpeed);
+     m_rightLeader.set(-RightSpeed);
+  }
+
+  ////////////////////////LIMELIGHT////////////////////////
+  public double getTx() {
+    return NetworkTableInstance.getDefault().getTable("limelight-abtomat").getEntry("tx").getDouble(0);
+  }
+
+  public double getTy() {
+    return NetworkTableInstance.getDefault().getTable("limelight-abtomat").getEntry("ty").getDouble(0);
+  }
+
+  public double getTa() {
+    return NetworkTableInstance.getDefault().getTable("limelight-abtomat").getEntry("ta").getDouble(10);
+  }
+
+  public double getTid() {
+    return NetworkTableInstance.getDefault().getTable("limelight-abtomat").getEntry("tid").getDouble(0);
+  }
+
+  public void SetVisionMode(Double m) {
+    NetworkTableInstance.getDefault().getTable("limelight-abtomat").getEntry("pipeline").setNumber(m);
   }
 
 
-  public void setspeed(double right_speed,double left_speed){
-    if (Math.abs(left_speed)>= 0.8){left_speed=(left_speed/Math.abs(left_speed))*0.8;}
-    if (Math.abs(right_speed)>= 0.8){right_speed=(right_speed/Math.abs(right_speed))*0.8;}
-
-    Left_Motor_M.set(left_speed);Left_Motor_S.set(left_speed);
-    Right_Motor_M.set(right_speed);Right_Motor_S.set(right_speed);
+  public void resetYaw() {
+    PartialYaw = ahrs.getYaw();
   }
+
+  public double getTotalYaw() {
+    return ahrs.getYaw();
+  }
+
+  public double getYaw() {
+    DifYaw = (ahrs.getYaw()) - PartialYaw;
+    return DifYaw;
+  }
+
+
+
 }

@@ -5,7 +5,6 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Sub_Chasis;
 import java.util.function.Supplier;
 
@@ -13,31 +12,37 @@ public class Cmd_Move extends Command {
   /** Creates a new Chasis_move_cmd. */
   private final Sub_Chasis chasis;
   private final Supplier<Double> RT,LT,XAxis;
-  private final Supplier<Boolean> Bbutton;
-  public Cmd_Move(Sub_Chasis chasis_Sub,Supplier<Double>RT,Supplier<Double>LT,Supplier<Double>XAxis,Supplier<Boolean> Bbutton) {
+  private final Supplier<Boolean> Bbutton, Xbutton;
+  public Cmd_Move(Sub_Chasis chasis_Sub,Supplier<Double>RT,Supplier<Double>LT,Supplier<Double>XAxis,Supplier<Boolean> bbutton,Supplier<Boolean>xbutton) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.chasis=chasis_Sub;
     this.LT=LT;
     this.RT=RT;
     this.XAxis=XAxis;
-    this.Bbutton=Bbutton;
+    this.Bbutton=bbutton;
+    this.Xbutton=xbutton;
     addRequirements(chasis_Sub);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    chasis.OpenLoopS(.5);
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     double speed_R,speed_L,Trigger,Turn,Boost;
+    boolean controlador=Bbutton.get();
+    boolean fium=Xbutton.get();
     Trigger=LT.get()-RT.get(); if (Math.abs(Trigger)<.15){Trigger=0;}
-    Turn=XAxis.get();if(Math.abs(Turn)<0.25){Turn = 0;}
-    if (Bbutton.get()){Boost=0.5;}else{Boost=1;}
-    speed_L= (Trigger+Turn)*Boost;
-    speed_R=(Trigger-Turn)*Boost;
-    chasis.setspeed(speed_L*.60, -speed_R*.60);
+    Turn=-XAxis.get();if(Math.abs(Turn)<0.1){Turn = 0;}
+    if (controlador){Boost=0.3;}else{
+    if (fium){Boost=0.7;}else{Boost=.5;}}
+    speed_L= (Trigger+(Turn*0.4))*Boost;
+    speed_R=(Trigger-(Turn*0.4))*Boost;
+    chasis.setSpeed(speed_R, speed_L);
   }
 
   // Called once the command ends or is interrupted.

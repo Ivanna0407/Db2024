@@ -8,16 +8,15 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Sub_Climber;
-import frc.robot.subsystems.Sub_Intake_Shooter;
-
 public class Cmd_Climb extends Command {
   /** Creates a new Cmd_Climb. */
   private final Sub_Climber Climber;
-  private final Supplier<Double> RightY;
-  public Cmd_Climb(Sub_Climber Climber,Supplier<Double> RightY) {
+  private final Supplier<Double> RightY,LeftY;
+  public Cmd_Climb(Sub_Climber Climber,Supplier<Double> RightY,Supplier<Double> LeftY) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.Climber=Climber;
     this.RightY=RightY;
+    this.LeftY=LeftY;
     addRequirements(Climber);
   }
 
@@ -29,8 +28,10 @@ public class Cmd_Climb extends Command {
   @Override
   public void execute() {
   double joystick=RightY.get();
+  double joystick_2=LeftY.get();
     if (Math.abs(joystick)<.25){joystick=0;}
-  Climber.SetSpeedclimb(joystick*.5);
+    if (Math.abs(joystick_2)<.25){joystick_2=0;}
+  Climber.SetSpeedclimb(joystick*.5, joystick_2*.5);
     
   }
 

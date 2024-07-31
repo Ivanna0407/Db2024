@@ -4,12 +4,16 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class Cmd_Take_Piece extends Command {
-  /** Creates a new Cmd_Take_Piece. */
-  public Cmd_Take_Piece() {
+public class Cmd_wait extends Command {
+  /** Creates a new Cmd_wait. */
+  double seconds;
+  boolean ending=false;
+  public Cmd_wait(double seconds) {
     // Use addRequirements() here to declare subsystem dependencies.
+    this.seconds=seconds;
   }
 
   // Called when the command is initially scheduled.
@@ -18,7 +22,11 @@ public class Cmd_Take_Piece extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    Timer.delay(seconds);
+    ending=true;
+  }
+
 
   // Called once the command ends or is interrupted.
   @Override
@@ -27,6 +35,11 @@ public class Cmd_Take_Piece extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    if (ending==true){
+      return true;
+    }
+    else{
+      return false;
+    }
   }
 }
